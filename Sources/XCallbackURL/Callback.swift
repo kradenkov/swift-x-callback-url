@@ -8,22 +8,22 @@
 import Foundation
 
 public struct Callback: Sendable {
-  public enum InconsistencyReason: Error {
-    case missingScheme
-    case missingHost
-  }
-
-  let url: URL
-
-  public init(url: URL) throws(InconsistencyReason) {
-    guard let scheme = url.scheme, !scheme.isEmpty else {
-      throw InconsistencyReason.missingScheme
+    public enum InconsistencyReason: Error {
+        case missingScheme
+        case missingHost
     }
 
-    guard let host = url.host(), !host.isEmpty else {
-      throw InconsistencyReason.missingHost
-    }
+    let url: URL
 
-    self.url = url
-  }
+    public init(url: URL) throws(InconsistencyReason) {
+        guard let scheme = url.scheme, !scheme.isEmpty else {
+            throw InconsistencyReason.missingScheme
+        }
+
+        guard let host = url.host(), !host.isEmpty else {
+            throw InconsistencyReason.missingHost
+        }
+
+        self.url = url
+    }
 }
