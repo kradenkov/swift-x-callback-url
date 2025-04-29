@@ -9,7 +9,7 @@ import Foundation
 
 public enum XCallbackURLFailure: Error, Equatable {
   case invalidScheme
-  case emptyAction
+  case invalidAction(String)
   case denyedParamareterNames([String])
   case invalidURLComponents(URLComponents)
 }

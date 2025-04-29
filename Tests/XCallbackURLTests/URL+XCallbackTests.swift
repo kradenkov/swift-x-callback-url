@@ -19,7 +19,7 @@ import Testing
     static let cancelCallbackURL: Callback = try! Callback(url: URL(string: "buzz://cancel-host")!)
   }
 
-  @Test("action with all cancellation callbacks and source")
+  @Test("x-callback parameters should preseed action parameters")
   func testActionWithAllCallbacksAndSource() throws {
     let xcallbackURL = try URL.xCallbackURL(
       scheme: TestData.scheme,
@@ -29,14 +29,15 @@ import Testing
         onSuccess: TestData.successCallbackURL,
         onError: TestData.failureCallbackURL,
         onCancel: TestData.cancelCallbackURL
-      )
+      ),
+      parameters: [URLQueryItem(name: "param1", value: "value1")]
     )
 
     #expect(
       xcallbackURL
         == URL(
           string:
-            "x-callback-scheme://x-callback-url/action?x-source=source-value&x-success=foo://success-host&x-error=bar://error-host&x-cancel=buzz://cancel-host"
+            "x-callback-scheme://x-callback-url/action?x-source=source-value&x-success=foo://success-host&x-error=bar://error-host&x-cancel=buzz://cancel-host&param1=value1"
         ))
   }
 
@@ -68,15 +69,25 @@ import Testing
       xcallbackURL
         == URL(
           string:
-            "\(TestData.scheme)://\(URL.Reserved.host)/\(TestData.action)?param1=value1&x-cancel=\(TestData.cancelCallbackURL.url)"
+            "\(TestData.scheme)://\(URL.Reserved.host)/\(TestData.action)?x-cancel=\(TestData.cancelCallbackURL.url)&param1=value1"
         ))
   }
 
   @Test("empty action with cancellation callback should fail") func testEmptyAction() throws {
-    #expect(throws: XCallbackURLFailure.emptyAction) {
+    #expect(throws: XCallbackURLFailure.invalidAction("")) {
       try URL.xCallbackURL(
         scheme: TestData.scheme,
         action: "",
+        callbacks: CallbacksConfiguration(onCancel: TestData.cancelCallbackURL)
+      )
+    }
+  }
+  
+  @Test("action containing invalid URL path Characters should fail") func testInvalidActionCharacters() throws {
+    #expect(throws: XCallbackURLFailure.invalidAction("action#withInvalidCharacter")) {
+      try URL.xCallbackURL(
+        scheme: TestData.scheme,
+        action: "action#withInvalidCharacter",
         callbacks: CallbacksConfiguration(onCancel: TestData.cancelCallbackURL)
       )
     }

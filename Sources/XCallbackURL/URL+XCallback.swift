@@ -51,8 +51,9 @@ extension URL {
     guard scheme.isValidURLScheme else {
       throw .invalidScheme
     }
-    guard !action.isEmpty else {
-      throw .emptyAction
+
+    guard !action.isEmpty && action.unicodeScalars.allSatisfy(CharacterSet.urlPathAllowed.contains) else {
+      throw .invalidAction(action)
     }
 
     var components = URLComponents()
@@ -65,7 +66,6 @@ extension URL {
 
 extension URLComponents {
   fileprivate mutating func addQueryItems(from configuration: CallbacksConfiguration) {
-    var items: [URLQueryItem] = queryItems ?? []
     let namedValues: KeyValuePairs<URL.Reserved.ParameterName, String?> = [
       .source: configuration.source,
       .success: configuration.onSuccess?.url.absoluteString,
@@ -73,12 +73,17 @@ extension URLComponents {
       .cancel: configuration.onCancel?.url.absoluteString,
     ]
 
-    for element in namedValues {
-      if let value = element.value, !value.isEmpty {
-        items.append(URLQueryItem(name: element.key.rawValue, value: value))
+    var xCallbackParameters: [URLQueryItem] = namedValues.compactMap { key, value in
+      guard let value = value, !value.isEmpty else {
+        return nil
       }
+      return URLQueryItem(name: key.rawValue, value: value)
     }
-
-    queryItems = items
+    
+    if let queryItems {
+      xCallbackParameters.append(contentsOf: queryItems)
+    }
+    
+    self.queryItems = xCallbackParameters
   }
 }
