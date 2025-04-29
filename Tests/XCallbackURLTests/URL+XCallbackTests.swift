@@ -24,7 +24,7 @@ import Testing
         let xcallbackURL = try URL.xCallbackURL(
             scheme: TestData.scheme,
             action: TestData.action,
-            callbacks: CallbacksConfiguration(
+            callbacks: XCallbackParameters(
                 source: TestData.source,
                 onSuccess: TestData.successCallbackURL,
                 onError: TestData.failureCallbackURL,
@@ -45,7 +45,7 @@ import Testing
         let xcallbackURL = try URL.xCallbackURL(
             scheme: TestData.scheme,
             action: TestData.action,
-            callbacks: CallbacksConfiguration(onCancel: TestData.cancelCallbackURL)
+            callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
         )
 
         #expect(
@@ -61,7 +61,7 @@ import Testing
         let xcallbackURL = try URL.xCallbackURL(
             scheme: TestData.scheme,
             action: TestData.action,
-            callbacks: CallbacksConfiguration(onCancel: TestData.cancelCallbackURL),
+            callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL),
             parameters: [URLQueryItem(name: "param1", value: "value1")]
         )
 
@@ -78,7 +78,7 @@ import Testing
             try URL.xCallbackURL(
                 scheme: TestData.scheme,
                 action: "",
-                callbacks: CallbacksConfiguration(onCancel: TestData.cancelCallbackURL)
+                callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
             )
         }
     }
@@ -88,7 +88,7 @@ import Testing
             try URL.xCallbackURL(
                 scheme: TestData.scheme,
                 action: "action#withInvalidCharacter",
-                callbacks: CallbacksConfiguration(onCancel: TestData.cancelCallbackURL)
+                callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
             )
         }
     }
@@ -98,7 +98,7 @@ import Testing
             try URL.xCallbackURL(
                 scheme: "",
                 action: TestData.action,
-                callbacks: CallbacksConfiguration(onCancel: TestData.cancelCallbackURL)
+                callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
             )
         }
     }
@@ -107,7 +107,7 @@ import Testing
         let xcallbackURL = try URL.xCallbackURL(
             scheme: TestData.scheme,
             action: "/" + TestData.action,
-            callbacks: CallbacksConfiguration(onCancel: TestData.cancelCallbackURL)
+            callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
         )
 
         #expect(
@@ -123,7 +123,7 @@ import Testing
             try URL.xCallbackURL(
                 scheme: TestData.scheme,
                 action: TestData.action,
-                callbacks: CallbacksConfiguration(onCancel: TestData.cancelCallbackURL),
+                callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL),
                 parameters: [
                     URLQueryItem(name: "x-param1", value: "value1"),
                     URLQueryItem(name: "param2", value: "value2"),

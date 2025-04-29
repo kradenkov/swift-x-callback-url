@@ -34,7 +34,7 @@ extension URL {
     public static func xCallbackURL(
         scheme: String,
         action: String,
-        callbacks: CallbacksParameters,
+        callbacks: XCallbackParameters,
         parameters: [URLQueryItem]? = nil
     ) throws(XCallbackURLFailure) -> URL {
         var components = try baseURLComponents(scheme: scheme, action: action)
@@ -78,7 +78,7 @@ extension URL {
 }
 
 extension URLComponents {
-    fileprivate mutating func addQueryItems(from configuration: CallbacksParameters) {
+    fileprivate mutating func addQueryItems(from configuration: XCallbackParameters) {
         let namedValues: KeyValuePairs<URL.Reserved.ParameterName, String?> = [
             .source: configuration.source,
             .success: configuration.onSuccess?.url.absoluteString,
