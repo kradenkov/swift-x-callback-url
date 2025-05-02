@@ -12,7 +12,7 @@ import Testing
 @Suite("URL+XCallbackTests") struct URLXCallbackTests {
     private enum TestData {
         static let scheme = "x-callback-scheme"
-        static let action = "action"
+        static let action = try! Action(name: "action")
         static let source = "source-value"
         static let successCallbackURL: Callback = try! Callback(url: URL(string: "foo://success-host")!)
         static let failureCallbackURL: Callback = try! Callback(url: URL(string: "bar://error-host")!)
@@ -21,16 +21,19 @@ import Testing
 
     @Test("x-callback parameters should preseed action parameters")
     func testActionWithAllCallbacksAndSource() throws {
+        let action = try Action(
+            name: TestData.action.name,
+            parameters: [URLQueryItem(name: "param1", value: "value1")]
+        )
         let xcallbackURL = try URL.xCallbackURL(
             scheme: TestData.scheme,
-            action: TestData.action,
-            callbacks: XCallbackParameters(
+            action: action,
+            parameters: XCallbackParameters(
                 source: TestData.source,
                 onSuccess: TestData.successCallbackURL,
                 onError: TestData.failureCallbackURL,
                 onCancel: TestData.cancelCallbackURL
-            ),
-            parameters: [URLQueryItem(name: "param1", value: "value1")]
+            )
         )
 
         #expect(
@@ -45,31 +48,34 @@ import Testing
         let xcallbackURL = try URL.xCallbackURL(
             scheme: TestData.scheme,
             action: TestData.action,
-            callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
+            parameters: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
         )
 
         #expect(
             xcallbackURL
                 == URL(
                     string:
-                        "\(TestData.scheme)://\(URL.Reserved.host)/\(TestData.action)?x-cancel=\(TestData.cancelCallbackURL.url)"
+                        "\(TestData.scheme)://\(URL.Reserved.host)/\(TestData.action.name)?x-cancel=\(TestData.cancelCallbackURL.url)"
                 ))
     }
 
     @Test("action with cancellation callback and parameters")
     func testCancellableActionXCallbackURLwithParameters() throws {
+        let action = try Action(
+            name: TestData.action.name,
+            parameters: [URLQueryItem(name: "param1", value: "value1")]
+        )
         let xcallbackURL = try URL.xCallbackURL(
             scheme: TestData.scheme,
-            action: TestData.action,
-            callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL),
-            parameters: [URLQueryItem(name: "param1", value: "value1")]
+            action: action,
+            parameters: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
         )
 
         #expect(
             xcallbackURL
                 == URL(
                     string:
-                        "\(TestData.scheme)://\(URL.Reserved.host)/\(TestData.action)?x-cancel=\(TestData.cancelCallbackURL.url)&param1=value1"
+                        "\(TestData.scheme)://\(URL.Reserved.host)/\(TestData.action.name)?x-cancel=\(TestData.cancelCallbackURL.url)&param1=value1"
                 ))
     }
 
@@ -77,8 +83,8 @@ import Testing
         #expect(throws: XCallbackURLFailure.invalidAction("")) {
             try URL.xCallbackURL(
                 scheme: TestData.scheme,
-                action: "",
-                callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
+                action: Action(name: ""),
+                parameters: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
             )
         }
     }
@@ -87,8 +93,8 @@ import Testing
         #expect(throws: XCallbackURLFailure.invalidAction("action#withInvalidCharacter")) {
             try URL.xCallbackURL(
                 scheme: TestData.scheme,
-                action: "action#withInvalidCharacter",
-                callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
+                action: Action(name: "action#withInvalidCharacter"),
+                parameters: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
             )
         }
     }
@@ -98,7 +104,7 @@ import Testing
             try URL.xCallbackURL(
                 scheme: "",
                 action: TestData.action,
-                callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
+                parameters: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
             )
         }
     }
@@ -106,29 +112,32 @@ import Testing
     @Test("action prefixed by slash") func testSlashedAction() throws {
         let xcallbackURL = try URL.xCallbackURL(
             scheme: TestData.scheme,
-            action: "/" + TestData.action,
-            callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
+            action: Action(name: "/" + TestData.action.name),
+            parameters: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
         )
 
         #expect(
             xcallbackURL
                 == URL(
                     string:
-                        "\(TestData.scheme)://\(URL.Reserved.host)/\(TestData.action)?x-cancel=\(TestData.cancelCallbackURL.url)"
+                        "\(TestData.scheme)://\(URL.Reserved.host)/\(TestData.action.name)?x-cancel=\(TestData.cancelCallbackURL.url)"
                 ))
     }
 
     @Test("denied parameter name should fail") func testDeniedParameterNames() throws {
         #expect(throws: XCallbackURLFailure.denyedParamareterNames(["x-param1", "x-param3"])) {
-            try URL.xCallbackURL(
-                scheme: TestData.scheme,
-                action: TestData.action,
-                callbacks: XCallbackParameters(onCancel: TestData.cancelCallbackURL),
+            let action = try Action(
+                name: TestData.action.name,
                 parameters: [
                     URLQueryItem(name: "x-param1", value: "value1"),
                     URLQueryItem(name: "param2", value: "value2"),
                     URLQueryItem(name: "x-param3", value: "value3"),
                 ]
+            )
+            try URL.xCallbackURL(
+                scheme: TestData.scheme,
+                action: action,
+                parameters: XCallbackParameters(onCancel: TestData.cancelCallbackURL)
             )
         }
     }

@@ -22,33 +22,21 @@ extension URL {
     /// Creates an x-callback-url according to the [x-callback-url specification](https://x-callback-url.com/specification/)
     /// - Parameters:
     ///   - scheme: The URL scheme of the target app that will handle the request. Must be a valid URL scheme.
-    ///   - action: The specific action to be executed by the target app. Cannot be empty. Must consist of URL path allowed characters
-    ///   - callbacks: Configuration containing optional source app identifier and callback URLs:
-    ///     - source: Identifies the source app requesting the action
-    ///     - onSuccess: URL to open on successful completion
-    ///     - onError: URL to open if the requested action generates an error
-    ///     - onCancel: URL to open if the requested action is cancelled by the user
-    ///   - parameters: Optional additional parameters specific to the action being requested
-    /// - Returns: A URL conforming of following structure: `[scheme]://[host]/[action]?[x-callback parameters]&[action parameters]`
+    ///   - action: The specific action to be executed by the target app, including any action-specific parameters.
+    ///   - parameters: Configuration containing optional source app identifier and callback URLs for success, error and cancel cases.
+    /// - Returns: A URL conforming to the structure: `[scheme]://x-callback-url/[action]?[x-callback parameters]&[action parameters]`
     /// - Throws: XCallbackURLFailure
     public static func xCallbackURL(
         scheme: String,
-        action: String,
-        callbacks: XCallbackParameters,
-        parameters: [URLQueryItem]? = nil
+        action: Action,
+        parameters: XCallbackParameters
     ) throws(XCallbackURLFailure) -> URL {
         var components = try baseURLComponents(scheme: scheme, action: action)
-        if let parameters, !parameters.isEmpty {
+        if let parameters = action.parameters, !parameters.isEmpty {
             components.queryItems = (components.queryItems ?? []) + parameters
         }
 
-        if let invalidParameters = components.queryItems?.filter({
-            $0.name.hasPrefix(Reserved.parameterPrefix)
-        }), !invalidParameters.isEmpty {
-            throw .denyedParamareterNames(invalidParameters.map(\.name))
-        }
-
-        components.addQueryItems(from: callbacks)
+        components.addQueryItems(from: parameters)
 
         guard let result = components.url else {
             throw .invalidURLComponents(components)
@@ -57,22 +45,19 @@ extension URL {
         return result
     }
 
-    private static func baseURLComponents(scheme: String, action: String) throws(XCallbackURLFailure)
+    private static func baseURLComponents(scheme: String, action: Action) throws(XCallbackURLFailure)
         -> URLComponents
     {
         guard scheme.isValidURLScheme else {
             throw .invalidScheme
         }
 
-        guard !action.isEmpty && action.unicodeScalars.allSatisfy(CharacterSet.urlPathAllowed.contains)
-        else {
-            throw .invalidAction(action)
-        }
+        let actionName = action.name
 
         var components = URLComponents()
         components.scheme = scheme
         components.host = Reserved.host
-        components.path = action.hasPrefix("/") ? action : "/\(action)"
+        components.path = actionName.hasPrefix("/") ? actionName : "/\(actionName)"
         return components
     }
 }
@@ -97,6 +82,6 @@ extension URLComponents {
             xCallbackParameters.append(contentsOf: queryItems)
         }
 
-        self.queryItems = xCallbackParameters
+        queryItems = xCallbackParameters
     }
 }
