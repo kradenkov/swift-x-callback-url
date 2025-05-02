@@ -47,8 +47,17 @@ The x-callback-url protocol follows this structure:
 ```swift
 import XCallbackURL
 
-// Create a callback configuration
-let callbacks = try CallbacksConfiguration(
+// Create an action with parameters
+let action = Action(
+    name: "doSomething",
+    parameters: [
+        URLQueryItem(name: "param1", value: "value1"),
+        URLQueryItem(name: "param2", value: "value2")
+    ]
+)
+
+// Create callback parameters
+let parameters = XCallbackParameters(
     source: "MyApp", // The friendly name of the source app
     onSuccess: Callback(url: URL(string: "myapp://success")!), // URL to return to on success
     onError: Callback(url: URL(string: "myapp://error")!), // URL to return to on error
@@ -58,12 +67,8 @@ let callbacks = try CallbacksConfiguration(
 // Create an x-callback-url
 let url = try URL.xCallbackURL(
     scheme: "otherapp", // The target app's URL scheme
-    action: "doSomething", // The action to perform
-    callbacks: callbacks,
-    parameters: [
-        URLQueryItem(name: "param1", value: "value1"),
-        URLQueryItem(name: "param2", value: "value2")
-    ]
+    action: action,
+    parameters: parameters
 )
 ```
 
@@ -96,9 +101,10 @@ func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>)
 - Type-safe URL creation following the x-callback-url specification
 - Support for all standard x-callback parameters (x-source, x-success, x-error, x-cancel)
 - Validation of URL schemes and parameters
-- Support for custom action parameters
-- Comprehensive error handling
+- Support for custom action parameters through URLQueryItems
+- Comprehensive error handling with XCallbackURLFailure
 - Cross-platform support (iOS, macOS, tvOS, watchOS, visionOS)
+- Swift 6.0+ support with modern Swift features
 
 ## License
 
